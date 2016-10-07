@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: auto;
+  position: relative;
+  width: 960px;
+}
+
+form {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+path {
+  stroke: #fff;
+  fill-rule: evenodd;
+}
+
+</style>
+<body>
+<form>
+  <label><input type="radio" name="mode" value="size" checked> Size</label>
+  <label><input type="radio" name="mode" value="count"> Count</label>
+</form>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 940,
+    height = 864,
+    radius = Math.min(width, height) / 2;
+
+var x = d3.scale.linear()
+    .range([0, 2 * Math.PI]);
+
+var y = d3.scale.pow().exponent(1.3).domain([0, 1]).range([0, radius]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
+
+var partition = d3.layout.partition()
+    .value(function(d) { return d.size; });
+
+var arc = d3.svg.arc()
+    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+    .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+    .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+// Make labels fit to the slice
+var labelFits = function(d) {
+    return x(d.x + d.dx) - x(d.x) > 0.05;
+};
+
+// Keep track of the node that is currently being displayed as the root.
+var node;
+
+d3.json("teddata.json", function(error, root) {
+  node = root;
+  var path = svg.datum(root).selectAll("path")
+      .data(partition.nodes)
+    .enter().append("path")
+      .attr("id", function(d, i) {
+            return "path-" + i;
+        })
+      .attr("d", arc)
+      .style("fill", function(d) {
+            return colors(d);
+        })
+      .on("click", function(d) {
+            return d.depth < 4 ? click(d) : click(d.parent)
+        })
+      .each(stash);
+
+  // radio buttons code
+  d3.selectAll("input").on("change", function change() {
+    var value = this.value === "count"
+        ? function(d) { return d.count; }
+        : function(d) { return d.size; };
+
+    path
+        .data(partition.value(value).nodes)
+      .transition()
+        .duration(1000)
+        .attrTween("d", arcTweenData);
+  });
+  // end radio buttons
+
+  function click(d) {
+    node = d;
+    path.transition()
+      .duration(1000)
+      .attrTween("d", arcTweenZoom(d));
+  }
+
+  var text = svg.selectAll("text").data(nodes);
+
+    var textEnter = text.enter().append("text")
+        .style("fill-opacity", 1)
+        .style("fill", function(d) {
+            return labelFits(d) ? "white" : "none";
+        })
+        .attr("text-anchor", function(d) {
+            return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+        })
+        .attr("dy", ".35em")
+        .attr("transform", function(d) {
+            var multiline = (d.name || "").split(" ").length > 1,
+                angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+                rotate = angle + (multiline ? -.5 : 0);
+            return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+        });
+    textEnter.append("tspan")
+        .attr("x", 0)
+        .text(function(d) {
+            // Truncate text where necessary for neatness
+            var firstLine = d.name.split(" ")[0];
+            if (d.depth && firstLine.length > 13) {
+                return firstLine.substring(0, 12) + "…"
+            } else if (d.depth) {
+                return firstLine;
+            } else return "";
+         });
+  
+        
+  
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+
+// Setup for switching data: stash the old values for transition.
+function stash(d) {
+  d.x0 = d.x;
+  d.dx0 = d.dx;
+}
+
+// When switching data: interpolate the arcs in data space.
+function arcTweenData(a, i) {
+  var oi = d3.interpolate({x: a.x0, dx: a.dx0}, a);
+  function tween(t) {
+    var b = oi(t);
+    a.x0 = b.x;
+    a.dx0 = b.dx;
+    return arc(b);
+  }
+  if (i == 0) {
+   // If we are on the first arc, adjust the x domain to match the root node
+   // at the current zoom level. (We only need to do this once.)
+    var xd = d3.interpolate(x.domain(), [node.x, node.x + node.dx]);
+    return function(t) {
+      x.domain(xd(t));
+      return tween(t);
+    };
+  } else {
+    return tween;
+  }
+}
+
+// When zooming: interpolate the scales.
+function arcTweenZoom(d) {
+  var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+      yd = d3.interpolate(y.domain(), [d.y, 1]),
+      yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+  return function(d, i) {
+    return i
+        ? function(t) { return arc(d); }
+        : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+  };
+}
+
+
+function colors(d) {
+
+    var nameChild = {
+        kimOther: ["kloe kardashian", "kanye west", "kylie jenner", "kendall jenner", "kourtney kardashian"],
+        justinOther: ["selena gomez", "miley cyrus"],
+        mileyOther: ["justin bieber", "selena gomez"],
+
+        beyonceOther: ["jay z", "rihanna", "nicki minaj", "nicki minaj beyonce"],
+
+        justinMusic: ["baby justin bieber"],
+        mileyMusic: ["wrecking ball"],
+        taylorMusic: ["blank space", "1989", "1989 taylor swift", "shake it off", "style taylor swift", "taylor swift blank", "taylor swift lyrics", "taylor swift songs", "taylor swift mp3"],
+        beyonceMusic: ["drunk in love", "beyonce album", "beyonce lyrics"]
+    };
+
+    //Base Colors
+    if (d.name == "Celebrities") return "#ad201c"; // Red
+    if (d.name == "Global Issues") return "#0e753f"; // Green
+
+    //Secondary colors
+
+    if (nameChild.kimOther.indexOf(d.name) !== -1) {
+        return "#fa919e";
+    } else if (nameChild.justinOther.indexOf(d.name) !== -1) {
+        return "#f5b690";
+    } else if (nameChild.mileyOther.indexOf(d.name) !== -1) {
+        return "#f2b1aa";
+    } else if (nameChild.beyonceOther.indexOf(d.name) !== -1) {
+        return "#f590c1";
+    } else if (nameChild.justinMusic.indexOf(d.name) !== -1) {
+        return "#b36535";
+    } else if (nameChild.mileyMusic.indexOf(d.name) !== -1) {
+        return "#af5e55";
+    } else if (nameChild.taylorMusic.indexOf(d.name) !== -1) {
+        return "#b95535";
+    } else if (nameChild.beyonceMusic.indexOf(d.name) !== -1) {
+        return "#b33572";
+    }
+
+
+
+    if (d.name == "Sexism") return "#0bb023";
+    if (d.name == "Global Warming") return "#0a7fa6";
+    if (d.name == "Sustainability") return "#41ad77";
+    if (d.name == "Human Rights") return "#0bb09b";
+    if (d.name == "Poverty") return "#24a60a";
+
+    if (d.name == "Kim Kardashian") return "#f41936";
+    if (d.name == "Justin Bieber") return "#ea6818";
+    if (d.name == "Miley Cyrus") return "#e45c4e";
+    if (d.name == "Taylor Swift") return "#f44d19";
+    if (d.name == "Beyonce") return "#ea187e";
+
+
+    if (d.parent && d.parent.name == "Sexism") return "#3cca51";
+    if (d.parent && d.parent.name == "Global Warming") return "#3ca0c2";
+    if (d.parent && d.parent.name == "Sustainability") return "#6bc899";
+    if (d.parent && d.parent.name == "Human Rights") return "#3ccab8";
+    if (d.parent && d.parent.name == "Poverty") return "#52c23c";
+
+    if (d.parent && d.parent.name == "Kim Kardashian") return "#f6475e";
+    if (d.parent && d.parent.name == "Justin Bieber") return "#ee8646";
+    if (d.parent && d.parent.name == "Miley Cyrus") return "#e97d71";
+    if (d.parent && d.parent.name == "Taylor Swift") return "#f67147";
+    if (d.parent && d.parent.name == "Beyonce") return "#ee4698";
+
+    return "#2b2d3c";
+
+}
+
+
+
+</script>

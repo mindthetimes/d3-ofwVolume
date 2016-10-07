@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<script src="d3.v3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link href='https://fonts.googleapis.com/css?family=Play' rel='stylesheet' type='text/css'>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw==" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A==" crossorigin="anonymous"></script>
+
+<title>OFWs Deployed 2007-2012 | Mind The Times</title>
+
+<style>
+body { overflow: hidden; margin: 0; font-family: "Play", serif; background: #ddd;}
+#wrapper { width: 940px; height: 1000px; margin: 0 auto; position: relative; background: white; }
+
+#info { display: block; position: absolute; width: 100%; top: 0; margin: 0 auto; padding: 8px; opacity: 0; color: white; z-index: 100; font-size: 24px;}
+#info #name { font-size: 20px; font-weight: bold;}
+#info #segment { font-size: 10px; margin-left: 10px; text-transform: uppercase; letter-spacing: 1px;}
+#info #percent { font-size: 10px; margin-left: 10px;}
+
+#splash { width: 400px; position: absolute; top: 75px; left: 60px; font-size: 40px; line-height: 1.1;}
+#splash #tip { font-size: 12px; margin-top: 5px; line-height: 1.3;}
+#splash #yearchoice { margin-left: 12px;}
+#splash .radio-inline { font-size: 16px; padding: 5px;}
+
+#credits { position: absolute; bottom: 10px; left: 10px; font-size: 10px; }
+
+#tweet-box { position: absolute; opacity: 0; left: 15px; top: 330px; width: 230px; padding: 10px 20px; text-align: center; background: #36464E; color: white; display: none; border-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+#tweet-box #tweet-text { margin: 10px 0; font-size: 13px; line-height: 1.2;}
+#tweet-box #close { float: right; cursor: pointer; }
+
+#button-container { position: absolute; z-index: 101; right: 20px; bottom: 10px;
+    background: #fff;
+    padding: 10px;
+    margin: 10px auto;
+    width: 180px;
+    border: 1px solid #222;
+    border-radius: 10px;
+    }
+
+#menu-buttons { position: absolute; z-index: 101; top: 50%; left: 5%; }
+
+.ring-toggle { visibility: visible; opacity: 1!important; }
+.ring-hide { visibility: hidden; opacity: 0; transition: visibility 0s, opacity 1.5s linear;}
+
+#logo { position: absolute; right: 0; z-index: 100; bottom: 0; margin-bottom: 45px;}
+path { stroke: #fff; fill-rule: evenodd; }
+text { font-size: 12px; pointer-events: none; fill: white; }
+svg { margin: 50px 0 0 35px; z-index: 101; }  
+.highlighted-path { opacity: 0.9!important; }
+.hidden { visibility: hidden; }
+</style>
+
+</head>
+<body>
+    <div id="wrapper">
+        <center><div id="info" style="opacity: 0;">
+                <div><span id="name"></span><span id="segment"></span>
+                <span id="ofw"></span><i class="fa fa-user">&nbsp;</i><span id="emissions"></span></div>
+        </div></center>
+        <div style="display: block; opacity: 1;" id="splash">
+                The Philippines deploys millions of OFWs per year.
+                <div id="tip">
+                    <i class="fa fa-mouse-pointer"></i> Mouseover to explore more info<br>
+                    <i class="fa fa-info-circle"></i> Select year of information to show
+                </div>
+                <div id="yearchoice">
+                    <label class="radio-inline"><input type="radio" name="optradio"
+                        onclick="window.location='bilevel2007.html';">2007</label>
+                    <label class="radio-inline"><input type="radio" name="optradio" 
+                        onclick="window.location='bilevel2008.html';" checked>2008</label>
+                    <label class="radio-inline"><input type="radio" name="optradio"
+                        onclick="window.location='bilevel2009.html';">2009</label>
+                    <label class="radio-inline"><input type="radio" name="optradio"
+                        onclick="window.location='bilevel2010.html';">2010</label>
+                    <label class="radio-inline"><input type="radio" name="optradio"
+                        onclick="window.location='bilevel2011.html';">2011</label>
+                    <label class="radio-inline"><input type="radio" name="optradio"
+                        onclick="window.location='bilevel2012.html';">2012</label>
+                </div>
+        </div>
+    </div>
+
+<script>
+//Set up the canvas
+var width = 940,
+    height = 860,
+    radius = height / 2,
+    x = d3.scale.linear().range([0, 2 * Math.PI]),
+    // y resizes the circle properly
+    y = d3.scale.pow().exponent(1.3).domain([0, 1]).range([0, radius]),
+    padding = 5,
+    duration = 1000,
+    centreDepth = 0;
+
+var tweetBoxShowing = false;
+
+// Add the svg to the canvas
+var div = d3.select("#wrapper");
+
+var vis = div.append("svg")
+    .attr("width", width + padding * 2)
+    .attr("height", height + padding * 2)
+    .append("g")
+    .attr("transform", "translate(" + [radius + padding, radius + padding] + ")");
+
+// Define how pie will be sliced
+var partition = d3.layout.partition()
+    .value(function(d) {
+        return d.size;
+    });
+
+
+
+var arc = d3.svg.arc()
+    .startAngle(function(d) {
+        return Math.max(0, Math.min(2 * Math.PI, x(d.x)));
+    })
+    .endAngle(function(d) {
+        return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
+    })
+    .innerRadius(function(d) {
+        return Math.max(0, d.y ? y(d.y) : d.y);
+    })
+    .outerRadius(function(d) {
+        return Math.max(0, y(d.y + d.dy));
+    });
+
+// Make labels fit to the slice
+var labelFits = function(d) {
+    return x(d.x + d.dx) - x(d.x) > 0.05;
+};
+
+// call the data
+d3.json("ofw2008.json", function(error, root) {
+    var nodes = partition.nodes(root);
+
+     var path = vis.selectAll("path").data(nodes);
+    path.enter().append("path")
+        .attr("id", function(d, i) {
+            return "path-" + i;
+        })
+        .attr("class", function(d) { return "ring-" + d.depth; })
+        .attr("d", arc)
+        .attr("fill-rule", "evenodd")
+        .style("fill", function(d) {
+            return colors(d);
+        })
+
+        path.on("click", function(d) {
+            return d.depth < 4 ? click(d) : click(d.parent)
+        })
+        .on("mouseover", mouseOver)
+        .on("mouseout", mouseOut);
+
+    var text = vis.selectAll("text").data(nodes);
+    var textEnter = text.enter().append("text")
+        .style("fill-opacity", 1)
+        .style("fill", function(d) {
+            return labelFits(d) ? "white" : "none";
+        })
+        .attr("text-anchor", function(d) {
+            return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+        })
+        .attr("dy", ".35em")
+        .attr("transform", function(d) {
+            var multiline = (d.name || "").split(" ").length > 1,
+                angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+                rotate = angle + (multiline ? -.5 : 0);
+            return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+        });
+    textEnter.append("tspan")
+        .attr("x", 0)
+        .text(function(d) {
+            // Truncate text where necessary for neatness
+            var firstLine = d.name.split(" ")[0];
+            if (d.depth && firstLine.length > 13) {
+                return firstLine.substring(0, 12) + "…"
+            } else if (d.depth) {
+                return firstLine;
+            } else return ""
+        });
+
+    /* textEnter.append("tspan")
+        .attr("x", 0)
+        .attr("dy", "1.1em")
+        .text(function(d) { return d.depth ? d.name.split(" ")[1] || "" : ""; }); */
+
+    d3.select("svg")
+        .append("text")
+        .attr("id", "centre-label")
+        .text("\uf0ac").style("font-family", "FontAwesome").style("font-size", "21px")
+        .attr("x", 435)
+        .attr("y", 443)
+        .attr("text-anchor", "middle")
+        .attr("pointer-events", "none");
+
+
+    path[0].every(function(p){
+        var d = d3.select(p).data();
+        if (d[0].name == "Global Issues"){
+          var k = d[0];
+          click(k, true);
+          duration = 1000;
+          return false;
+        }
+        return true;
+    });
+
+
+    function click(d) {
+        path.transition()
+            .duration(duration)
+            .attrTween("d", arcTween(d))
+            .each("end", function(d, i) {
+                // Once the scales have been updated by arcTween, update the
+                // fill style of the label depending on the size of the wedge
+                d3.select(text[0][i]).style("fill", function(d) {
+                    return labelFits(d) ? "white" : "none";
+                });
+            });
+
+
+
+        // Somewhat of a hack as we rely on arcTween updating the scales.
+        text.style("visibility", function(e) {
+                return isParentOf(d, e) ? null : d3.select(this).style("visibility");
+            })
+            .transition()
+            .duration(duration)
+            .attrTween("text-anchor", function(d) {
+                return function() {
+                    return x(d.x + d.dx / 2) > Math.PI ? "end" : "start";
+                };
+            })
+            .attrTween("transform", function(d) {
+                var multiline = (d.name || "").split(" ").length > 1;
+                return function() {
+                    var angle = x(d.x + d.dx / 2) * 180 / Math.PI - 90,
+                        rotate = angle + (multiline ? -.5 : 0);
+                    return "rotate(" + rotate + ")translate(" + (y(d.y) + padding) + ")rotate(" + (angle > 90 ? -180 : 0) + ")";
+                };
+            })
+            .style("fill-opacity", function(e) {
+                return isParentOf(d, e) ? 1 : 1e-6;
+            })
+            .each("end", function(e) {
+                d3.select(this).style("visibility", isParentOf(d, e) ? null : "hidden");
+            });
+
+        // Fade headline, and adjust centre label, in/out depending on zoom
+        if (d.depth == 0) {
+                d3.select("#splash").style("display","block").transition().duration(750).delay(500).style("opacity",1);
+                d3.select("#centre-label").text("\uf0ac")
+                        .style("font-family", "FontAwesome").style("font-size", "21px");
+            } else {
+                d3.select("#splash").transition().duration(350).style("opacity",0).each("end", function() { 
+                        d3.select(this).style("display","none");
+                });
+               d3.select("#centre-label").text("\uf0a8").style("font-family", "FontAwesome").style("font-size", "21px");
+                d3.select("#centre-label-background").transition().delay(350).style("fill",colors(d.parent))
+            }
+    }
+});
+
+function mouseOver(d) {
+    displayDetails(d);
+    if (d.depth > 0) d3.select(this).style("cursor", "pointer");
+    var ancestorArray = getAncestors(d);
+    d3.selectAll("path")
+        .classed("highlighted-path", false);
+    d3.selectAll("path")
+        .filter(function(node) {
+            return ancestorArray.indexOf(node) >= 0;
+        })
+        .classed("highlighted-path", true);
+    d3.select("#centre-label-background").classed("highlighted-path", true);
+}
+
+function displayDetails(d) {
+    d3.select("#info").transition().duration(300).style("opacity", 0.9)
+
+    /* if (d.type) */
+    d3.select("#info").style("background", "#1E2052"); // add something here that changes tooltip background depending on data
+    d3.select("#name").text(d.depth == 4 ? d.parent.name : d.name);
+    d3.select("#segment").text(d.depth == 4 ? d.name : " ");
+    var emissions = Math.round(d.value * 100) / 100;
+    d3.select("#emissions").text(+d.value != 0 ? emissions + " - No. of OFWs" : " ").style("font-size", "18px");
+    ofwAmount;
+    
+}
+
+function mouseOut(d) {
+    d3.selectAll(".highlighted-path").classed("highlighted-path", false)
+    d3.select("#info").transition().duration(400).style("opacity", 0);
+}
+
+function ofwAmount(d) {
+    if (d.size == 238419) {
+        $("#ofw").append("<p>ASdada</p>");
+    }
+}
+
+
+function getAncestors(node) {
+    var path = [];
+    var current = node;
+    while (current.parent) {
+        path.unshift(current);
+        current = current.parent;
+    }
+    path.unshift(current)
+    return path;
+}
+
+function isParentOf(p, c) {
+    if (p === c) return true;
+    if (p.children) {
+        return p.children.some(function(d) {
+            return isParentOf(d, c);
+        });
+    }
+    return false;
+}
+
+// Interpolate the scales!
+function arcTween(d) {
+    var my = maxY(d),
+        xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+        yd = d3.interpolate(y.domain(), [d.y, my]),
+        yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+    return function(d) {
+        return function(t) {
+            x.domain(xd(t));
+            y.domain(yd(t)).range(yr(t));
+            return arc(d);
+        };
+    };
+}
+
+function maxY(d) {
+    return d.children ? Math.max.apply(Math, d.children.map(maxY)) : d.y + d.dy;
+}
+
+
+
+function colors(d) {
+
+    //Base Colors
+    if (d.name == "Land-Based") return "#B61B1B"; // Red
+    if (d.name == "Sea-Based") return "#0C46A0"; // Blue
+
+    //Secondary colors
+    if (d.name == "Middle East") return "#BE350B"; 
+    if (d.name == "Asia") return "#E55000"; 
+    if (d.name == "Europe") return "#FF6E00"; 
+    if (d.name == "America") return "#FFC107"; 
+    if (d.name == "Africa") return "#817616";
+    if (d.name == "Oceania") return "#32681D"; 
+    if (d.name == "Trust Territories") return "#1A5D1F"; 
+
+    if (d.parent && d.parent.name == "Middle East") return "#FF6F42";
+    if (d.parent && d.parent.name == "Asia") return "#FFA625";
+    if (d.parent && d.parent.name == "Europe") return "#FFC927";
+    if (d.parent && d.parent.name == "America") return "#FFED57";
+    if (d.parent && d.parent.name == "Africa") return "#D3E056";
+    if (d.parent && d.parent.name == "Oceania") return "#9BCB64";
+    if (d.parent && d.parent.name == "Trust Territories") return "#65BA69";
+    return "#1E2052";
+
+}
+
+/* 
+var aspect = 960 / 500,
+    chart = $("#chart");
+$(window).on("resize", function() {
+    var targetWidth = chart.parent().width();
+    chart.attr("width", targetWidth);
+    chart.attr("height", targetWidth / aspect);
+});
+
+*/
+
+// http://www.w3.org/WAI/ER/WD-AERT/#color-contrast
+function brightness(rgb) {
+    return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;
+}
+</script>
+
+</body></html>

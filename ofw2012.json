@@ -1,0 +1,239 @@
+{
+  "name": "Deployed OFWs by Location (Year 2012)",
+  "children": [
+    {
+      "name": "Land-Based",
+      "children": [
+        {
+          "name": "Africa",
+          "children": [
+            {
+              "name": "Angola",
+              "size": 4294,
+              "count": 0
+            },
+            {
+              "name": "Equatorial Guinea",
+              "size": 1931,
+              "count": 0
+            },
+            {
+              "name": "Nigeria",
+              "size": 1997,
+              "count": 0
+            },
+            {
+              "name": "Sudan",
+              "size": 1315,
+              "count": 0
+            },
+            {
+              "name": "Rest of Africa",
+              "size": 15657,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "America",
+          "children": [
+            {
+              "name": "Canada",
+              "size": 19283,
+              "count": 0
+            },
+            {
+              "name": "Cayman Island",
+              "size": 795,
+              "count": 0
+            },
+            {
+              "name": "Diego Garcia",
+              "size": 717,
+              "count": 0
+            },
+            {
+              "name": "United States of America",
+              "size": 3441,
+              "count": 0
+            },
+            {
+              "name": "Rest of America",
+              "size": 5317,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Asia",
+          "children": [
+            {
+              "name": "Brunei",
+              "size": 14907,
+              "count": 0
+            },
+            {
+              "name": "Hong Kong",
+              "size": 131680,
+              "count": 0
+            },
+            {
+              "name": "Japan",
+              "size": 9947,
+              "count": 0
+            },
+            {
+              "name": "Korea",
+              "size": 8979,
+              "count": 0
+            },
+            {
+              "name": "Malaysia",
+              "size": 38407,
+              "count": 0
+            },
+            {
+              "name": "Singapore",
+              "size": 172690,
+              "count": 0
+            },
+            {
+              "name": "Taiwan",
+              "size": 41492,
+              "count": 0
+            },
+            {
+              "name": "Rest of Asia",
+              "size": 57919,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Europe",
+          "children": [
+            {
+              "name": "Cyprus",
+              "size": 3484,
+              "count": 0
+            },
+            {
+              "name": "Ireland",
+              "size": 1763,
+              "count": 0
+            },
+            {
+              "name": "Italy",
+              "size": 25261,
+              "count": 0
+            },
+            {
+              "name": "United Kingdom",
+              "size": 3913,
+              "count": 0
+            },
+            {
+              "name": "Rest of Europe",
+              "size": 12649,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Middle East",
+          "children": [
+            {
+              "name": "Bahrain",
+              "size": 22271,
+              "count": 0
+            },
+            {
+              "name": "Kuwait",
+              "size": 75286,
+              "count": 0
+            },
+            {
+              "name": "Lebanon",
+              "size": 1227,
+              "count": 0
+            },
+            {
+              "name": "Libya",
+              "size": 6481,
+              "count": 0
+            },
+            {
+              "name": "Oman",
+              "size": 16048,
+              "count": 0
+            },
+            {
+              "name": "Qatar",
+              "size": 104622,
+              "count": 0
+            },
+            {
+              "name": "Saudi Arabia",
+              "size": 330040,
+              "count": 0
+            },
+            {
+              "name": "United Arab Emirates",
+              "size": 259546,
+              "count": 0
+            },
+            {
+              "name": "Rest of Middle East",
+              "size": 9881,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Oceania",
+          "children": [
+            {
+              "name": "Australia",
+              "size": 8008,
+              "count": 0
+            },
+            {
+              "name": "Papua New Guinea",
+              "size": 12250,
+              "count": 0
+            },
+            {
+              "name": "Rest of Oceania",
+              "size": 4133,
+              "count": 0
+            }
+          ]
+        },
+        {
+          "name": "Trust Territories",
+          "children": [
+            {
+              "name": "Mariana Islands (CNMI)",
+              "size": 797,
+              "count": 0
+            },
+            {
+              "name": "Republic of Belau",
+              "size": 1362,
+              "count": 0
+            },
+            {
+              "name": "Rest of Trust Territories",
+              "size": 1523,
+              "count": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sea-Based",
+      "size": 366865
+    }
+  ]
+}
